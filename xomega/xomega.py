@@ -15,7 +15,7 @@ def grid(ds, peri=[]):
     return Grid(ds, periodic=peri)
 
 
-def wa(grid, ds, psi, f0, beta, N2, dim=None, coord=None):
+def wa(ds, psi, f0, beta, N2, grid=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
     first-order ageostrophic vertical velocity.
@@ -46,6 +46,13 @@ def wa(grid, ds, psi, f0, beta, N2, dim=None, coord=None):
     dZ = ds.drC      # Difference between grid mid points
     nz = len(Z)
     N = psi.shape
+
+    if any(DZ <= 0.) or any(dZ <= 0.):
+        raise ValueError('Difference between depths should be'
+                        'positive values.')
+    if any(np.abs(Zl[0])-np.abs(Z[0]) >= 0.):
+        raise ValueError('Top of the grid interface should be'
+                        'shallower than the mid points.')
 
     psihat = xrft.dft(psi.chunk(chunks={'Z':1}), dim=['Y','X'], shift=False
                      ).chunk(chunks={'freq_X':N[-2],'freq_Y':N[-1]})

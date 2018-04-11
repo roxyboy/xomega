@@ -56,4 +56,4 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {'xomega': [pjoin('data', '*')]}
-REQUIRES = ["numpy", "scipy", "xarray", "dask", "xgcm", "xmitgcm", "xrft"]
+REQUIRES = ["numpy", "scipy", "xarray", "dask", "xgcm", "xrft"]

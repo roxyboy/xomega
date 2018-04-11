@@ -5,59 +5,67 @@ from scipy.linalg import solve
 from scipy.sparse import coo_matrix, csc_matrix, eye
 from scipy.sparse.linalg import spsolve
 import xrft
-from xgcm.grid import Grid
+# from xgcm.grid import Grid
 import warnings
 
-__all__ = ['grid','wa']
+__all__ = ['w_ageo']
 
-
-def grid(ds, peri=[]):
-    return Grid(ds, periodic=peri)
-
-
-def wa(ds, psi, f0, beta, N2, grid=None, dim=None, coord=None):
+def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
     first-order ageostrophic vertical velocity.
 
     Parameters
     ----------
-    grid : xgcm.grid object
-    ds   : xarray.DataSet
-        Dataset that includes the grid data and variable
     psi  : xarray.DataArray
         Geostrophic stream function
+    Zl   : xarray.DataArray
+        Depth of top cell surface
+    dz   : xarray.DataArray
+        Difference between cell mid points.
+    DZ   : xarray.DataArray
+        Difference between cell interfaces.
     f0   : int
         Coriolis parameter
     beta : int
         Meridional gradient of the Coriolis parameter
     N2   : int or xarray.DataArray
         Buoyancy frequency
+    grid : xgcm.grid object
+        It will not work without grid specified.
 
     Returns
     -------
     wa   : xarray.DataArray
         Ageostrophic vertical velocity
     """
-    Z = ds.Z         # Depth between interface
-    Zp1 = ds.Zp1     # Depth of interface
-    Zl = ds.Zl       # Depth of top interface
-    DZ = ds.drF      # Difference between interface
-    dZ = ds.drC      # Difference between grid mid points
+    if grid == None:
+        raise ValueError("xgcm.Grid object needs to be provided.")
+
+    # Z = ds.Z         # Depth between interface
+    # Zp1 = ds.Zp1     # Depth of interface
+    # Zl = ds.Zl       # Depth of top interface
+    # DZ = ds.drF      # Difference between interface
+    # dZ = ds.drC      # Difference between grid mid points
+    Z = len(psi.Z)
     nz = len(Z)
     N = psi.shape
 
-    if any(DZ <= 0.) or any(dZ <= 0.):
-        raise ValueError('Difference between depths should be'
-                        'positive values.')
-    if any(np.abs(Zl[0])-np.abs(Z[0]) >= 0.):
-        raise ValueError('Top of the grid interface should be'
-                        'shallower than the mid points.')
+    if any(np.abs(Zl) > np.abs(Z)):
+        raise ValueError("The top cell surface should be shallower"
+                        "than the mid points.")
+
+    # if any(DZ <= 0.) or any(dZ <= 0.):
+    #     raise ValueError('Difference between depths should be'
+    #                     'positive values.')
+    # if any(np.abs(Zl[0])-np.abs(Z[0]) >= 0.):
+    #     raise ValueError('Top of the grid interface should be'
+    #                     'shallower than the mid points.')
 
     psihat = xrft.dft(psi.chunk(chunks={'Z':1}), dim=['Y','X'], shift=False
-                     ).chunk(chunks={'freq_X':N[-2],'freq_Y':N[-1]})
+                     ).chunk(chunks={'freq_Y':N[-1],'freq_X':N[-2]})
     bhat = grid.interp(grid.diff(psihat,'Z',boundary='fill')
-                      / grid.diff(Z,'Z',boundary='fill'),
+                      / grid.diff(psihat.Z,'Z',boundary='fill'),
                       'Z',boundary='fill')
     bhat *= f0
     kx = 2*np.pi*psihat.freq_X
@@ -131,7 +139,7 @@ def wa(ds, psi, f0, beta, N2, grid=None, dim=None, coord=None):
     wahat = xr.DataArray(wahat, dims=['Zl','freq_Y','freq_X'],
                         coords={'Zl':Zl.data,'freq_y':ky,'freq_X':kx}
                         )
-    wa = dsar.fft.ifft2(wahat.chunk(chunks={'Z':1,'freq_Y':512,'freq_X':512}
+    wa = dsar.fft.ifft2(wahat.chunk(chunks={'Z':1,'freq_Y':N[-1],'freq_X':N[-2]}
                                    ).data, axes=[-2,-1]
                        ).real
 

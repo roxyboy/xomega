@@ -25,7 +25,7 @@ def test_w_ageo():
     DZ = f(Z.data)
 
     with pytest.raises(NotImplementedError):
-        w_ageo(da,da.Zl,dz,DZ,0.,0.,0.)
+        w_ageo(da,da.Zl,0.,0.,0.,dz,DZ=DZ)
 
     da = np.random.rand(N,N,N)
     da = xr.DataArray(da, dims=['Zl','Y','X'],
@@ -33,7 +33,9 @@ def test_w_ageo():
                             'Y':range(N),'X':range(N)}
                      )
     with pytest.raises(ValueError):
-        w_ageo(da,da.Zl,dz,DZ,0,0,np.ones(N),FTdim=['Y','X'])
+        w_ageo(da,da.Zl,0,0,np.ones(N),dz,DZ=DZ,FTdim=['Y','X'])
+    with pytest.raises(ValueError):
+        w_ageo(da,da.Zl,0,0,np.ones(N),1.,FTdim=['Y','X'])
 
     # with pytest.raises(ValueError):
     #     xomega.w_ageo(da, Zl, dz, DZ, 0., 0., 0.)

@@ -25,15 +25,15 @@ def test_w_ageo():
     DZ = f(Z.data)
 
     with pytest.raises(NotImplementedError):
-        w_geo(da,Zl,dz,DZ,0.,0.,0.)
+        w_ageo(da,da.Zl,dz,DZ,0.,0.,0.)
 
     da = np.random.rand(N,N,N)
-    da = xr.DataArray(da, dims=['Z','Y','X'],
-                     coords={'Z':np.arange(-.5,-10.5,-1.),
+    da = xr.DataArray(da, dims=['Zl','Y','X'],
+                     coords={'Zl':range(0,-10,-1),
                             'Y':range(N),'X':range(N)}
                      )
     with pytest.raises(ValueError):
-        w_geo(da,Zl,dz,DZ,0,0,np.ones(N),0.)
+        w_ageo(da,da.Zl,dz,DZ,0,0,np.ones(N),FTdim=['Y','X'])
 
     # with pytest.raises(ValueError):
     #     xomega.w_ageo(da, Zl, dz, DZ, 0., 0., 0.)

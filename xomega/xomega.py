@@ -22,17 +22,17 @@ def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
     Zl   : xarray.DataArray
-        Depth of top cell layer
+        Depth of top cell layer.
     dz   : float or numpy.array
         Difference between cell mid points.
     DZ   : numpy.array (conditional)
         Difference between cell interfaces.
     f0   : float
-        Coriolis parameter
+        Coriolis parameter.
     beta : float
-        Meridional gradient of the Coriolis parameter
+        Meridional gradient of the Coriolis parameter.
     N2   : float or xarray.DataArray
-        Buoyancy frequency
+        Buoyancy frequencys squared.
     grid : xgcm.grid object (optional)
         Uses the xgcm.grid.Grid functionality to take
         the differencing and interpolation.
@@ -99,7 +99,7 @@ def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
         row = range(nz-1)
         col = range(nz-1)
         if len(N2) != nz-1:
-            raise ValueError("N2 should have one less element than psi.")
+            raise ValueError("N2 should have one element less than psi.")
         if N2.dims != Zl.dims:
             raise ValueError("N2 and psi should be on the same vertical grid.")
         enu = coo_matrix((N2,(row,col)),

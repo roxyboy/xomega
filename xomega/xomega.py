@@ -9,8 +9,8 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
-          FTdim=None, dim=None, coord=None):
+def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
+          grid=None, FTdim=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
     first-order ageostrophic vertical velocity.
@@ -22,19 +22,20 @@ def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
     Zl   : xarray.DataArray
-        Depth of top cell surface
-    dz   : xarray.DataArray
+        Depth of top cell layer.
+    dz   : float or numpy.array
         Difference between cell mid points.
-    DZ   : xarray.DataArray
+    DZ   : numpy.array (conditional)
         Difference between cell interfaces.
-    f0   : int
-        Coriolis parameter
-    beta : int
-        Meridional gradient of the Coriolis parameter
-    N2   : int or xarray.DataArray
-        Buoyancy frequency
+    f0   : float
+        Coriolis parameter.
+    beta : float
+        Meridional gradient of the Coriolis parameter.
+    N2   : float or xarray.DataArray
+        Buoyancy frequencys squared.
     grid : xgcm.grid object (optional)
-        It will not work without grid specified.
+        Uses the xgcm.grid.Grid functionality to take
+        the differencing and interpolation.
 
     Returns
     -------
@@ -47,7 +48,7 @@ def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
     nz = len(Zl)
     N = psi.shape
     if len(N) > 3:
-        raise NotImplementedError("Taking data with more than 3 dimensions"
+        raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
 
     if dim == None:
@@ -58,7 +59,7 @@ def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
     psihat = xrft.dft(psi, dim=FTdim, shift=False)
     if grid == None:
         bhat = psihat.diff(Zl.dims)/psihat.Zl.diff(Zl.dims)
-        func = interp1d(Zl[1:], bhat)
+        func = interp1d(.5*(Zl[1:]+Zl[:-1]), bhat)
         bhat = xr.DataArray(func(Zl), dims=psihat.dims, coords=psihat.coords)
     else:
         bhat = grid.interp(grid.diff(psihat,'Z',boundary='fill')
@@ -92,13 +93,13 @@ def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 
     ### N2 matrix ###
-    if type(N2).__name__ == 'int':
+    if type(N2) == float:
         enu = eye(nz-1) * N2
     else:
         row = range(nz-1)
         col = range(nz-1)
         if len(N2) != nz-1:
-            raise ValueError("N2 should have one less element than psi.")
+            raise ValueError("N2 should have one element less than psi.")
         if N2.dims != Zl.dims:
             raise ValueError("N2 and psi should be on the same vertical grid.")
         enu = coo_matrix((N2,(row,col)),
@@ -115,16 +116,25 @@ def w_ageo(psi, Zl, dz, DZ, f0, beta, N2, grid=None,
     col = np.append(range(2), col)
     col = np.append(col, np.array([nz-3,nz-2]))
 
+    if type(dz) == int:
+        dz = dz*np.ones(nz)
+        DZ = dz
+    else:
+        warnings.warn("The numerical errors for vertical derivatives "
+                     "may be significant.")
+        if DZ == None:
+            raise ValueError("If dz is an array, "
+                            "DZ also needs to be an array.")
     tmp = np.zeros((nz-3,3))
-    tmp[:,0] = DZ[1:-2].data**-1
-    tmp[:,-1] = DZ[2:-1].data**-1
-    tmp[:,1] = -(DZ[1:-2].data**-1 + DZ[2:-1].data**-1)
+    tmp[:,0] = DZ[1:-2]**-1
+    tmp[:,-1] = DZ[2:-1]**-1
+    tmp[:,1] = -(DZ[1:-2]**-1 + DZ[2:-1]**-1)
     data = np.zeros(len(tmp.ravel())+4)
-    data[2:-2] = (tmp * dZ.data[2:nz-1,np.newaxis]**-1).ravel()
-    data[0] = -dZ[1].data**-1 * (DZ[0].data**-1 + DZ[1].data**-1)
-    data[1] = dZ[1].data**-1 * DZ[1].data**-1
-    data[-2] = dZ[nz-1].data**-1 * DZ[-2].data**-1
-    data[-1] = -dZ[nz-1].data**-1 * (DZ[-2].data**-1 + DZ[-1].data**-1)
+    data[2:-2] = (tmp * dZ[2:nz-1,np.newaxis]**-1).ravel()
+    data[0] = -dZ[1]**-1 * (DZ[0]**-1 + DZ[1]**-1)
+    data[1] = dZ[1]**-1 * DZ[1]**-1
+    data[-2] = dZ[nz-1]**-1 * DZ[-2]**-1
+    data[-1] = -dZ[nz-1]**-1 * (DZ[-2]**-1 + DZ[-1]**-1)
     data *= f0**2
     delta = coo_matrix((data,(row,col)),
                       shape=(nz-1,nz-1),dtype=np.float64

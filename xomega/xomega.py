@@ -60,7 +60,8 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     psihat = xrft.dft(psi, dim=FTdim, shift=False)
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
-        func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat)
+        axis_num = [psihat.get_axis_num(d) for d in zdim]
+        func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat, axis=axis_num)
         bhat = xr.DataArray(func(Zl.data), dims=psihat.dims,
                            coords=psihat.coords)
     else:

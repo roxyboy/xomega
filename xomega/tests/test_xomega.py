@@ -25,7 +25,7 @@ def test_4D():
     DZ = f(Z.data)
 
     with pytest.raises(NotImplementedError):
-        w_ageo(da,da.Zl,0.,0.,0.,dz,DZ=DZ)
+        w_ageo(da,0.,0.,0.,dz,DZ=DZ)
 
 def test_dims():
     N = 10
@@ -45,9 +45,9 @@ def test_dims():
     DZ = f(Z.data)
 
     with pytest.raises(ValueError):
-        w_ageo(da,da.Zl,0,0,np.ones(N),dz,DZ=DZ,FTdim=['Y','X'])
+        w_ageo(da,0,0,np.ones(N),dz,DZ=DZ,FTdim=['Y','X'])
     with pytest.raises(ValueError):
-        w_ageo(da,da.Zl,0,0,np.ones(N-1),dz,FTdim=['Y','X'])
+        w_ageo(da,0,0,np.ones(N-1),dz,FTdim=['Y','X'])
 
     # with pytest.raises(ValueError):
     #     xomega.w_ageo(da, Zl, dz, DZ, 0., 0., 0.)

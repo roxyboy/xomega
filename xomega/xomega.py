@@ -9,7 +9,7 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
+def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
@@ -45,9 +45,10 @@ def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
     # if grid == None:
     #     raise ValueError("xgcm.Grid object needs to be provided.")
 
+    Zl = psi[zdim]
     nz = len(Zl)
     N = psi.shape
-    if len(N) > 3:
+    if len(N) != 3:
         raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
 
@@ -58,7 +59,7 @@ def w_ageo(psi, Zl, f0, beta, N2, dz, DZ=None,
 
     psihat = xrft.dft(psi, dim=FTdim, shift=False)
     if grid == None:
-        bhat = psihat.diff(Zl.dims)/psihat.Zl.diff(Zl.dims)
+        bhat = psihat.diff(zdim)/Zl.diff(zdim)
         func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat)
         bhat = xr.DataArray(func(Zl.data), dims=psihat.dims,
                            coords=psihat.coords)

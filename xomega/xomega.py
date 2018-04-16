@@ -157,7 +157,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
             ### Normal inversion ###
             A = csc_matrix(-kappa2*enu+delta, dtype=np.float64)
             ### Rigid lid solution ###
-            wahat[1:-1,j,i] = spsolve(A, Frhs[1:,j,i])
+            wahat[1:,j,i] = spsolve(A, Frhs[:,j,i])
 
     wahat = xr.DataArray(wahat, dims=[dim[0],'freq_Y','freq_X'],
                         coords={dim[0]:Zp1.data,

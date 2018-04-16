@@ -38,7 +38,7 @@ install:
   - cd ../
 
 script:
-  - py.test xomega --cov=xomega --cov-config .coveragerc --cov-report term-missing -v
+  - py.test -v xomega --cov=xomega --cov-config .coveragerc --cov-report term-missing -v
 #- nosetests -v --with-coverage --cover-package=shablona
 #- flake8 --ignore N802,N806 `find . -name \*.py | grep -v setup.py | grep -v /doc/`
 

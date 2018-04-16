@@ -46,16 +46,15 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     #     raise ValueError("xgcm.Grid object needs to be provided.")
 
     Zl = psi[zdim]
+    if dim != None and coord != None:
+        Zp1 = coord[dim[0]]
+        if len(Zp1) != len(Zl)+1:
+            raise ValueError("Zp1 should be the depths of the grid layers.")
     nz = len(Zl)
     N = psi.shape
     if len(N) != 3:
         raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
-
-    if dim == None:
-        dim = psi.dims
-    if coord == None:
-        coord = psi.coords
 
     psihat = xrft.dft(psi, dim=FTdim, shift=False)
     if grid == None:
@@ -160,10 +159,12 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
             ### Rigid lid solution ###
             wahat[1:-1,j,i] = spsolve(A, Frhs[1:,j,i])
 
-    wahat = xr.DataArray(wahat, dims=['Zl','freq_Y','freq_X'],
-                        coords={'Zl':Zl.data,'freq_y':ky,'freq_X':kx}
+    wahat = xr.DataArray(wahat, dims=[dim[0],'freq_Y','freq_X'],
+                        coords={dim[0]:Zp1.data,
+                               'freq_y':ky,'freq_X':kx}
                         )
-    wa = dsar.fft.ifft2(wahat.chunk(chunks={'Z':1,'freq_Y':N[-1],'freq_X':N[-2]}
+    wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
+                                           'freq_Y':N[-1],'freq_X':N[-2]}
                                    ).data, axes=[-2,-1]
                        ).real
 

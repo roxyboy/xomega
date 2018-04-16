@@ -17,7 +17,7 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
 
     Parameters
     ----------
-    psi  : dask.array
+    psi  : xarray.DataArray
         Geostrophic stream function. It should be aligned
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
@@ -57,24 +57,28 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     if coord == None:
         coord = psi.coords
 
-    psihat = xrft.dft(psi, dim=FTdim, shift=False)
+    axis_num = psi.get_axis_num(zdim)
+    psihat = xrft.dft(psi.chunk(chunks={zdim:1}), dim=FTdim, shift=False)
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
-        axis_num = [psihat.get_axis_num(d) for d in zdim]
-        func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat, axis=axis_num)
+        func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat,
+                       axis=axis_num, fill_value='extrapolate'
+                       )
         bhat = xr.DataArray(func(Zl.data), dims=psihat.dims,
-                           coords=psihat.coords)
+                           coords=psihat.coords
+                           ).chunk(chunks=psihat.chunks)
     else:
         bhat = grid.interp(grid.diff(psihat,'Z',boundary='fill')
                           / grid.diff(Zl,'Z',boundary='fill'),
-                          'Z', boundary='fill')
+                          'Z', boundary='fill'
+                          ).chunk(chunks=psihat.chunks)
         if psihat.dims != bhat.dims:
             raise ValueError("psihat and bhat should be on the same grid.")
     bhat *= f0
 
-    k_names = ['freq_' + d for d in psihat.dims[-2:]]
-    kx = 2*np.pi*psihat[k_names[-1]]
-    ky = 2*np.pi*psihat[k_names[-2]]
+    # k_names = ['freq_' + d for d in psihat.dims[-2:]]
+    kx = 2*np.pi*psihat[psihat.dims[-1]]
+    ky = 2*np.pi*psihat[psihat.dims[-2]]
 
     ughat = -1j*psihat*ky
     vghat = 1j*psihat*kx
@@ -90,8 +94,10 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
          * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
          )
 
-    Q1hat = xrft.dft(Q1, dim=FTdim, shift=False)
-    Q2hat = xrft.dft(Q2, dim=Ftdim, shift=False)
+    Q1hat = xrft.dft(xr.DataArray(Q1,dims=psihat.dims,coords=psihat.coords),
+                    dim=FTdim, shift=False)
+    Q2hat = xrft.dft(xr.DataArray(Q2,dims=psihat.dims,coords=psihat.coords), 
+                    dim=Ftdim, shift=False)
 
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 

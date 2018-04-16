@@ -17,22 +17,22 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
 
     Parameters
     ----------
-    psi  : xarray.DataArray
+    psi  : dask.array
         Geostrophic stream function. It should be aligned
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
-    Zl   : xarray.DataArray
-        Depth of top cell layer.
-    dz   : float or numpy.array
-        Difference between cell mid points.
-    DZ   : numpy.array (conditional)
-        Difference between cell interfaces.
     f0   : float
         Coriolis parameter.
     beta : float
         Meridional gradient of the Coriolis parameter.
     N2   : float or xarray.DataArray
         Buoyancy frequencys squared.
+    dz   : float or numpy.array
+        Difference between cell mid points.
+    DZ   : numpy.array (conditional)
+        Difference between cell interfaces.
+    zdim : str
+        Name of the vertical dimension of psi.
     grid : xgcm.grid object (optional)
         Uses the xgcm.grid.Grid functionality to take
         the differencing and interpolation.
@@ -57,10 +57,10 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     if coord == None:
         coord = psi.coords
 
-    axis_num = psi.get_axis_num(zdim)
-    psihat = xrft.dft(psi.chunk(chunks={zdim:1}), dim=FTdim, shift=False)
+    psihat = xrft.dft(psi, dim=FTdim, shift=False)
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
+        axis_num = psi.get_axis_num(zdim)
         func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat,
                        axis=axis_num, fill_value='extrapolate'
                        )
@@ -94,10 +94,10 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
          * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
          )
 
-    Q1hat = xrft.dft(xr.DataArray(Q1,dims=psihat.dims,coords=psihat.coords),
+    Q1hat = xrft.dft(xr.DataArray(Q1,dims=psi.dims,coords=psi.coords),
                     dim=FTdim, shift=False)
-    Q2hat = xrft.dft(xr.DataArray(Q2,dims=psihat.dims,coords=psihat.coords), 
-                    dim=Ftdim, shift=False)
+    Q2hat = xrft.dft(xr.DataArray(Q2,dims=psi.dims,coords=psi.coords),
+                    dim=FTdim, shift=False)
 
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 
@@ -107,11 +107,11 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     else:
         row = range(nz-1)
         col = range(nz-1)
-        if len(N2) != nz-1:
-            raise ValueError("N2 should have one element less than psi.")
+        # if len(N2) != nz-1:
+        #     raise ValueError("N2 should have one element less than psi.")
         if N2.dims != Zl.dims:
             raise ValueError("N2 and psi should be on the same vertical grid.")
-        enu = coo_matrix((N2,(row,col)),
+        enu = coo_matrix((N2[1:],(row,col)),
                         shape=(nz-1,nz-1), dtype=np.float64
                         )
 

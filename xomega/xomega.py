@@ -9,7 +9,7 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
+def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
@@ -125,9 +125,9 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     col = np.append(range(2), col)
     col = np.append(col, np.array([nz-3,nz-2]))
 
-    if isinstance(dz, float):
-        dz = dz*np.ones(nz)
-        DZ = dz
+    if isinstance(dZ, float):
+        dZ = dZ*np.ones(nz)
+        DZ = dZ
     else:
         warnings.warn("The numerical errors for vertical derivatives "
                      "may be significant.")

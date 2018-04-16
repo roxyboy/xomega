@@ -13,7 +13,9 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None):
     """
     Inverts the QG Omega equation to get the
-    first-order ageostrophic vertical velocity.
+    first-order ageostrophic vertical velocity
+    for a rigid lid and flat bottom configuration,
+    i.e. w(z=0,z=-H)=0.
 
     Parameters
     ----------
@@ -44,12 +46,13 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     """
     # if grid == None:
     #     raise ValueError("xgcm.Grid object needs to be provided.")
+    if dim == None:
+        dim = psi.dims
+    if coord == None:
+        coord = psi.coords
+    Zpl = coord[dim[0]]
 
     Zl = psi[zdim]
-    if dim != None and coord != None:
-        Zp1 = coord[dim[0]]
-        if len(Zp1) != len(Zl)+1:
-            raise ValueError("Zp1 should be the depths of the grid layers.")
     nz = len(Zl)
     N = psi.shape
     if len(N) != 3:
@@ -102,27 +105,27 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
 
     ### N2 matrix ###
     if isinstance(N2, float):
-        enu = eye(nz-1) * N2
+        enu = eye(nz) * N2
     else:
-        row = range(nz-1)
-        col = range(nz-1)
+        row = range(nz)
+        col = range(nz)
         # if len(N2) != nz-1:
         #     raise ValueError("N2 should have one element less than psi.")
         if N2.dims != Zl.dims:
             raise ValueError("N2 and psi should be on the same vertical grid.")
-        enu = coo_matrix((N2[1:],(row,col)),
-                        shape=(nz-1,nz-1), dtype=np.float64
+        enu = coo_matrix((N2,(row,col)),
+                        shape=(nz,nz), dtype=np.float64
                         )
 
     ### Delta matrix ###
-    row = np.repeat(range(1,nz-2),3)
+    row = np.repeat(range(1,nz-1),3)
     row = np.append(np.array([0,0]),row)
-    row = np.append(row,np.array([nz-2,nz-2]))
+    row = np.append(row,np.array([nz-1,nz-1]))
     col = np.arange(3)
-    for i in range(nz-4):
+    for i in range(nz-3):
         col = np.append(col, np.arange(i+1,i+4))
     col = np.append(range(2), col)
-    col = np.append(col, np.array([nz-3,nz-2]))
+    col = np.append(col, np.array([nz-2,nz-1]))
 
     if isinstance(dZ, float):
         dZ = dZ*np.ones(nz)
@@ -133,23 +136,23 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         if DZ == None:
             raise ValueError("If dz is an array, "
                             "DZ also needs to be an array.")
-    tmp = np.zeros((nz-3,3))
-    tmp[:,0] = DZ[1:-2]**-1
-    tmp[:,-1] = DZ[2:-1]**-1
-    tmp[:,1] = -(DZ[1:-2]**-1 + DZ[2:-1]**-1)
+    tmp = np.zeros((nz-2,3))
+    tmp[:,0] = DZ[:-2]**-1
+    tmp[:,-1] = DZ[1:-1]**-1
+    tmp[:,1] = -(DZ[:-2]**-1 + DZ[1:-1]**-1)
     data = np.zeros(len(tmp.ravel())+4)
-    data[2:-2] = (tmp * dZ[2:nz-1,np.newaxis]**-1).ravel()
-    data[0] = -dZ[1]**-1 * (DZ[0]**-1 + DZ[1]**-1)
-    data[1] = dZ[1]**-1 * DZ[1]**-1
+    data[2:-2] = (tmp * dZ[1:nz-1,np.newaxis]**-1).ravel()
+    data[0] = -dZ[0]**-1 * (DZ[0]**-1 + DZ[1]**-1)
+    data[1] = dZ[0]**-1 * DZ[1]**-1
     data[-2] = dZ[nz-1]**-1 * DZ[-2]**-1
     data[-1] = -dZ[nz-1]**-1 * (DZ[-2]**-1 + DZ[-1]**-1)
     data *= f0**2
     delta = coo_matrix((data,(row,col)),
-                      shape=(nz-1,nz-1),dtype=np.float64
+                      shape=(nz,nz),dtype=np.float64
                       )
 
     nk, nl = (len(kx),len(ky))
-    wahat = np.zeros((nz+1,nl,nk), dtype=np.complex128)
+    wahat = np.zeros_like(Frhs, dtype=np.complex128)
 
     for i in range(nk):
         for j in range(nl):
@@ -157,7 +160,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
             ### Normal inversion ###
             A = csc_matrix(-kappa2*enu+delta, dtype=np.float64)
             ### Rigid lid solution ###
-            wahat[1:,j,i] = spsolve(A, Frhs[:,j,i])
+            wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 
     wahat = xr.DataArray(wahat, dims=[dim[0],'freq_Y','freq_X'],
                         coords={dim[0]:Zp1.data,

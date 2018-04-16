@@ -102,7 +102,7 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 
     ### N2 matrix ###
-    if type(N2) == float:
+    if isinstance(N2, float):
         enu = eye(nz-1) * N2
     else:
         row = range(nz-1)
@@ -125,7 +125,7 @@ def w_ageo(psi, f0, beta, N2, dz, DZ=None, zdim='Zl',
     col = np.append(range(2), col)
     col = np.append(col, np.array([nz-3,nz-2]))
 
-    if type(dz) == int:
+    if isinstance(dz, float):
         dz = dz*np.ones(nz)
         DZ = dz
     else:

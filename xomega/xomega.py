@@ -50,7 +50,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         dim = psi.dims
     if coord == None:
         coord = psi.coords
-    Zpl = coord[dim[0]]
+    Zp1 = coord[dim[0]]
 
     Zl = psi[zdim]
     nz = len(Zl)

@@ -45,9 +45,15 @@ def test_dims():
     DZ = f(Z.data)
 
     with pytest.raises(ValueError):
-        w_ageo(da,0,0,np.ones(N),dz,DZ=DZ,FTdim=['Y','X'])
+        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
+              xr.DataArray(np.ones(N+1),dims=['Zp1'],
+                          coords={'Zp1':range(0,-11,-1)}),
+              dz,DZ=DZ,FTdim=['Y','X'])
     with pytest.raises(ValueError):
-        w_ageo(da,0,0,np.ones(N-1),dz,FTdim=['Y','X'])
+        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
+              xr.DataArray(np.ones(N),dims=da.Zl.dims,
+                          coords={'Zl':da.Zl.data}),
+              dz,FTdim=['Y','X'])
 
     # with pytest.raises(ValueError):
     #     xomega.w_ageo(da, Zl, dz, DZ, 0., 0., 0.)

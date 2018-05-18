@@ -10,7 +10,8 @@ import warnings
 __all__ = ['w_ageo']
 
 def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
-          grid=None, FTdim=None, dim=None, coord=None):
+          grid=None, FTdim=None, dim=None, coord=None,
+          **kwargs):
     """
     Inverts the QG Omega equation to get the
     first-order ageostrophic vertical velocity
@@ -44,6 +45,8 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         Dimensions of the output.
     coords : list
         Coordinates of the output.
+    kwargs : dictionary
+        Keyword arguments for `xrft.dft`.
 
     Returns
     -------
@@ -65,7 +68,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
 
-    psihat = xrft.dft(psi, dim=FTdim, shift=False)
+    psihat = xrft.dft(psi, dim=FTdim, **kwargs)
     kdims = psihat.dims[-2:]
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
@@ -104,9 +107,9 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
          )
 
     Q1hat = xrft.dft(xr.DataArray(Q1,dims=psi.dims,coords=psi.coords),
-                    dim=FTdim, shift=False)
+                    dim=FTdim, **kwargs)
     Q2hat = xrft.dft(xr.DataArray(Q2,dims=psi.dims,coords=psi.coords),
-                    dim=FTdim, shift=False)
+                    dim=FTdim, **kwargs)
 
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 

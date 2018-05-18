@@ -169,7 +169,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
             ### Rigid lid solution ###
             wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 
-    wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-2]],
+    wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-1]],
                         coords={dim[0]:Zp1.data,
                                kdims[-2]:ky,kdims[-1]:kx}
                         )

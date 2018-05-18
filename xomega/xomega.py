@@ -60,6 +60,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
                                  "is not implemented yet.")
 
     psihat = xrft.dft(psi, dim=FTdim, shift=False)
+    kdims = psihat.dims[-2:]
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
         axis_num = psi.get_axis_num(zdim)
@@ -79,8 +80,8 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     bhat *= f0
 
     # k_names = ['freq_' + d for d in psihat.dims[-2:]]
-    kx = 2*np.pi*psihat[psihat.dims[-1]]
-    ky = 2*np.pi*psihat[psihat.dims[-2]]
+    kx = 2*np.pi*psihat[kdims[-1]]
+    ky = 2*np.pi*psihat[kdims[-2]]
 
     ughat = -1j*psihat*ky
     vghat = 1j*psihat*kx
@@ -162,12 +163,13 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
             ### Rigid lid solution ###
             wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 
-    wahat = xr.DataArray(wahat, dims=[dim[0],'freq_Y','freq_X'],
+    wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-2]],
                         coords={dim[0]:Zp1.data,
                                'freq_y':ky,'freq_X':kx}
                         )
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
-                                           'freq_Y':N[-1],'freq_X':N[-2]}
+                                           kdims[-1]:N[-1],
+                                           kdims[-2]:N[-2]}
                                    ).data, axes=[-2,-1]
                        ).real
 

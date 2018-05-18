@@ -57,22 +57,22 @@ def test_dims():
                           coords={'Zl':da.Zl.data}),
               dz,FTdim=['Y','X'])
 
-def test_qg():
-    TESTDATA_FILENAME = op.join(op.dirname(__file__),
-                               'QG_psi-and-w.nc')
-    ds = xr.open_dataset(TESTDATA_FILENAME)
-
-    dz = np.abs(ds.Z.diff('Z')[0].data)
-    psi = xr.DataArray(.5*(ds.psi_uni+ds.psi_uni.shift(Z=-1))[:-1].data,
-                      dims=['Zb','Y','X'],
-                      coords={'Zb':ds.Zb.data,'Y':ds.Y.data,'X':ds.X.data}
-                      )
-    wa = w_ageo(psi.chunk(chunks={'Zb':1}), 0.00010131036606448109,
-               1.6448722979145434e-11, 4.009293075046547e-07, dz,
-               zdim='Zb', FTdim=['Y','X'])
-
-    npt.assert_allclose((wa**2).mean(['X','Y']),
-                       (ds.w**2).mean(['X','Y']), rtol=1e-1)
+# def test_qg():
+#     TESTDATA_FILENAME = op.join(op.dirname(__file__),
+#                                'QG_psi-and-w.nc')
+#     ds = xr.open_dataset(TESTDATA_FILENAME)
+# 
+#     dz = np.abs(ds.Z.diff('Z')[0].data)
+#     psi = xr.DataArray(.5*(ds.psi_uni+ds.psi_uni.shift(Z=-1))[:-1].data,
+#                       dims=['Zb','Y','X'],
+#                       coords={'Zb':ds.Zb.data,'Y':ds.Y.data,'X':ds.X.data}
+#                       )
+#     wa = w_ageo(psi.chunk(chunks={'Zb':1}), 0.00010131036606448109,
+#                1.6448722979145434e-11, 4.009293075046547e-07, dz,
+#                zdim='Zb', FTdim=['Y','X'])
+#
+#     npt.assert_allclose((wa**2).mean(['X','Y']),
+#                        (ds.w**2).mean(['X','Y']), rtol=1e-1)
 
     # with pytest.raises(ValueError):
     #     xomega.w_ageo(da, Zl, dz, DZ, 0., 0., 0.)

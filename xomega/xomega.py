@@ -3,7 +3,7 @@ import xarray as xr
 import dask.array as dsar
 from scipy.sparse import coo_matrix, csc_matrix, eye
 from scipy.sparse.linalg import spsolve
-from scipy.interpolate import interp1d
+from scipy.interpolate import PchipInterpolator as pchip
 import xrft
 import warnings
 
@@ -70,10 +70,10 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
         axis_num = psi.get_axis_num(zdim)
-        func = interp1d(.5*(Zl[1:].data+Zl[:-1].data), bhat,
-                       axis=axis_num, fill_value='extrapolate'
-                       )
-        bhat = xr.DataArray(func(Zl.data), dims=psihat.dims,
+        func = pchip(np.abs(.5*(Zl[1:].data+Zl[:-1].data)), bhat,
+                    axis=axis_num
+                    )
+        bhat = xr.DataArray(func(np.abs(Zl.data)), dims=psihat.dims,
                            coords=psihat.coords
                            ).chunk(chunks=psihat.chunks)
     else:

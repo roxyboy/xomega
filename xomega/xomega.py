@@ -171,7 +171,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
 
     wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-2]],
                         coords={dim[0]:Zp1.data,
-                               'freq_y':ky,'freq_X':kx}
+                               kdims[-2]:ky,kdims[-1]:kx}
                         )
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
                                            kdims[-1]:N[-1],

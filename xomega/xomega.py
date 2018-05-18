@@ -38,6 +38,12 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     grid : xgcm.grid object (optional)
         Uses the xgcm.grid.Grid functionality to take
         the differencing and interpolation.
+    FTdim : list
+        Horizontal dimensions to take the DFT over.
+    dim : list
+        Dimensions of the output.
+    coords : list
+        Coordinates of the output.
 
     Returns
     -------

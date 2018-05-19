@@ -119,11 +119,12 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
          + dsar.fft.ifft2(1j*(vghat*ky).data, axes=[-2,-1])
          * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
          )
+    Q1 = xr.DataArray(Q1,dims=psi.dims,coords=psi.coords)
+    Q2 = xr.DataArray(Q2,dims=psi.dims,coords=psi.coords)
+
     if periodic == None:
-        Q1hat = xrft.dft(xr.DataArray(Q1,dims=psi.dims,coords=psi.coords),
-                        dim=FTdim, **kwargs)
-        Q2hat = xrft.dft(xr.DataArray(Q2,dims=psi.dims,coords=psi.coords),
-                        dim=FTdim, **kwargs)
+        Q1hat = xrft.dft(Q1, dim=FTdim, **kwargs)
+        Q2hat = xrft.dft(Q2, dim=FTdim, **kwargs)
     else:
         for i in FTdim:
             if i == periodic:

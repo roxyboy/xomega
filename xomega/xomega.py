@@ -46,8 +46,9 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     coords : list
         Coordinates of the output.
     periodic : string
-        Name of periodic dimensions. It should be specified
-        when only either spatial dimension is periodic.
+        Name of the horizontal periodic dimension.
+        It should be specified when only either spatial dimension is periodic.
+        If both horizontal dimensions are periodic, edit `kwargs` instead.
     kwargs : dictionary
         Keyword arguments for `xrft.dft`.
 
@@ -82,7 +83,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
                 psihat = xrft.dft(psi, dim=[i],
                                  shift=False, detrend='constant')
             else:
-                psihat = xrft.dft(psi, dim=[i], **kwargs)
+                psihat = xrft.dft(psihat, dim=[i], **kwargs)
     kdims = psihat.dims[-2:]
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)

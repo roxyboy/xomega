@@ -56,12 +56,17 @@ def test_dims():
               xr.DataArray(np.ones(N),dims=da.Zl.dims,
                           coords={'Zl':da.Zl.data}),
               dz,FTdim=['Y','X'])
+    with pytest.raises(ValueError):
+        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
+              xr.DataArray(np.ones(N),dims=da.Zl.dims,
+                          coords={'Zl':da.Zl.data}),
+              dz,DZ=DZ,FTdim=['Y','X'],periodic='X')
 
 # def test_qg():
 #     TESTDATA_FILENAME = op.join(op.dirname(__file__),
 #                                'QG_psi-and-w.nc')
 #     ds = xr.open_dataset(TESTDATA_FILENAME)
-# 
+#
 #     dz = np.abs(ds.Z.diff('Z')[0].data)
 #     psi = xr.DataArray(.5*(ds.psi_uni+ds.psi_uni.shift(Z=-1))[:-1].data,
 #                       dims=['Zb','Y','X'],

@@ -11,7 +11,7 @@ __all__ = ['w_ageo']
 
 def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None,
-          **kwargs):
+          periodic=None, **kwargs):
     """
     Inverts the QG Omega equation to get the
     first-order ageostrophic vertical velocity
@@ -45,6 +45,9 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         Dimensions of the output.
     coords : list
         Coordinates of the output.
+    periodic : string
+        Name of periodic dimensions. It should be specified
+        when only either spatial dimension is periodic.
     kwargs : dictionary
         Keyword arguments for `xrft.dft`.
 
@@ -68,7 +71,18 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
 
-    psihat = xrft.dft(psi, dim=FTdim, **kwargs)
+    if periodic == None:
+        psihat = xrft.dft(psi, dim=FTdim, **kwargs)
+    else:
+        if FTdim[0] != periodic:
+            raise ValueError("The first element in `FTdim` needs to be "
+                            "the periodic dimension.")
+        for i in FTdim:
+            if i == periodic:
+                psihat = xrft.dft(psi, dim=[i],
+                                 shift=False, detrend='constant')
+            else:
+                psihat = xrft.dft(psi, dim=[i], **kwargs)
     kdims = psihat.dims[-2:]
     if grid == None:
         bhat = psihat.diff(zdim)/Zl.diff(zdim)
@@ -105,11 +119,21 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
          + dsar.fft.ifft2(1j*(vghat*ky).data, axes=[-2,-1])
          * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
          )
-
-    Q1hat = xrft.dft(xr.DataArray(Q1,dims=psi.dims,coords=psi.coords),
-                    dim=FTdim, **kwargs)
-    Q2hat = xrft.dft(xr.DataArray(Q2,dims=psi.dims,coords=psi.coords),
-                    dim=FTdim, **kwargs)
+    if periodic == None:
+        Q1hat = xrft.dft(xr.DataArray(Q1,dims=psi.dims,coords=psi.coords),
+                        dim=FTdim, **kwargs)
+        Q2hat = xrft.dft(xr.DataArray(Q2,dims=psi.dims,coords=psi.coords),
+                        dim=FTdim, **kwargs)
+    else:
+        for i in FTdim:
+            if i == periodic:
+                Q1hat = xrft.dft(Q1, dim=[i],
+                                shift=False, detrend='constant')
+                Q2hat = xrft.dft(Q2, dim=[i],
+                                shift=False, detrend='constant')
+            else:
+                Q1hat = xrft.dft(Q1hat, dim=[i], **kwargs)
+                Q2hat = xrft.dft(Q2hat, dim=[i], **kwargs)
 
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 

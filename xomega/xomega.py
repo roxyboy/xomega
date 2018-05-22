@@ -122,20 +122,21 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
          )
     Q1 = xr.DataArray(Q1,dims=psi.dims,coords=psi.coords)
     Q2 = xr.DataArray(Q2,dims=psi.dims,coords=psi.coords)
-
-    if periodic == None:
-        Q1hat = xrft.dft(Q1, dim=FTdim, **kwargs)
-        Q2hat = xrft.dft(Q2, dim=FTdim, **kwargs)
-    else:
-        for i in FTdim:
-            if i == periodic:
-                Q1hat = xrft.dft(Q1, dim=[i],
-                                shift=False, detrend='constant')
-                Q2hat = xrft.dft(Q2, dim=[i],
-                                shift=False, detrend='constant')
-            else:
-                Q1hat = xrft.dft(Q1hat, dim=[i], **kwargs)
-                Q2hat = xrft.dft(Q2hat, dim=[i], **kwargs)
+    Q1hat = xrft.dft(Q1, dim=FTdim, shift=False)
+    Q2hat = xrft.dft(Q2, dim=FTdim, shift=False)
+    # if periodic == None:
+    #     Q1hat = xrft.dft(Q1, dim=FTdim, **kwargs)
+    #     Q2hat = xrft.dft(Q2, dim=FTdim, **kwargs)
+    # else:
+    #     for i in FTdim:
+    #         if i == periodic:
+    #             Q1hat = xrft.dft(Q1, dim=[i],
+    #                             shift=False, detrend='constant')
+    #             Q2hat = xrft.dft(Q2, dim=[i],
+    #                             shift=False, detrend='constant')
+    #         else:
+    #             Q1hat = xrft.dft(Q1hat, dim=[i], **kwargs)
+    #             Q2hat = xrft.dft(Q2hat, dim=[i], **kwargs)
 
     Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
 

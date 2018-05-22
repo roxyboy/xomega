@@ -48,6 +48,8 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     periodic : string
         Name of the horizontal periodic dimension.
         It should be specified when only either spatial dimension is periodic.
+        In this case, the stream function should be detrended before
+        being called as an input for the function.
         If both horizontal dimensions are periodic, edit `kwargs` instead.
     kwargs : dictionary
         Keyword arguments for `xrft.dft`.
@@ -80,8 +82,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
                             "the periodic dimension.")
         for i in FTdim:
             if i == periodic:
-                psihat = xrft.dft(psi, dim=[i],
-                                 shift=False, detrend='constant')
+                psihat = xrft.dft(psi, dim=[i], shift=False)
             else:
                 psihat = xrft.dft(psihat, dim=[i], **kwargs)
     kdims = psihat.dims[-2:]

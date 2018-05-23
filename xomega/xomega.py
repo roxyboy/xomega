@@ -9,7 +9,7 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
+def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None,
           periodic=None, **kwargs):
     """
@@ -24,10 +24,10 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         Geostrophic stream function. It should be aligned
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
-    f0   : float
-        Coriolis parameter.
+    f   : xarray.DataArray
+        Local coriolis parameter.
     beta : float
-        Meridional gradient of the Coriolis parameter.
+        Meridional gradient of the coriolis parameter.
     N2   : float or xarray.DataArray
         Buoyancy frequencys squared.
     dz   : float or numpy.array
@@ -102,7 +102,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
                           ).chunk(chunks=psihat.chunks)
         if psihat.dims != bhat.dims:
             raise ValueError("psihat and bhat should be on the same grid.")
-    bhat *= f0
+    bhat *= f
 
     # k_names = ['freq_' + d for d in psihat.dims[-2:]]
     kx = 2*np.pi*psihat[kdims[-1]]
@@ -184,6 +184,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     data[1] = dZ[0]**-1 * DZ[1]**-1
     data[-2] = dZ[nz-1]**-1 * DZ[-2]**-1
     data[-1] = -dZ[nz-1]**-1 * (DZ[-2]**-1 + DZ[-1]**-1)
+    f0 = f.mean()
     data *= f0**2
     delta = coo_matrix((data,(row,col)),
                       shape=(nz,nz),dtype=np.float64

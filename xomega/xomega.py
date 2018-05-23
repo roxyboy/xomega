@@ -186,7 +186,7 @@ def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
     data[1] = dZ[0]**-1 * DZ[1]**-1
     data[-2] = dZ[nz-1]**-1 * DZ[-2]**-1
     data[-1] = -dZ[nz-1]**-1 * (DZ[-2]**-1 + DZ[-1]**-1)
-    f0 = f.mean()
+    f0 = (f.mean().data*np.ones(1))[0]
     data *= f0**2
     delta = coo_matrix((data,(row,col)),
                       shape=(nz,nz),dtype=np.float64

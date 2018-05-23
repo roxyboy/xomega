@@ -9,7 +9,7 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
+def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
           grid=None, FTdim=None, dim=None, coord=None,
           periodic=None, **kwargs):
     """
@@ -24,10 +24,10 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         Geostrophic stream function. It should be aligned
         on the cell top. The 2D FFT will be taken so the
         horizontal axes should not be chunked.
-    f0   : float
-        Coriolis parameter.
+    f   : xarray.DataArray
+        Local coriolis parameter.
     beta : float
-        Meridional gradient of the Coriolis parameter.
+        Meridional gradient of the coriolis parameter.
     N2   : float or xarray.DataArray
         Buoyancy frequencys squared.
     dz   : float or numpy.array
@@ -73,9 +73,10 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     if len(N) != 3:
         raise NotImplementedError("Taking data with more than 3 dimensions "
                                  "is not implemented yet.")
-
+    phi = psi*f
     if periodic == None:
         psihat = xrft.dft(psi, dim=FTdim, **kwargs)
+        phihat = xrft.dft(phi, dim=FTdim, **kwargs)
     else:
         if FTdim[0] != periodic:
             raise ValueError("The first element in `FTdim` needs to be "
@@ -83,26 +84,27 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
         for i in FTdim:
             if i == periodic:
                 psihat = xrft.dft(psi, dim=[i], shift=False)
+                phihat = xrft.dft(phi, dim=[i], shift=False)
             else:
                 psihat = xrft.dft(psihat, dim=[i], **kwargs)
+                phihat = xrft.dft(phihat, dim=[i], **kwargs)
     kdims = psihat.dims[-2:]
     if grid == None:
-        bhat = psihat.diff(zdim)/Zl.diff(zdim)
+        bhat = phihat.diff(zdim)/Zl.diff(zdim)
         axis_num = psi.get_axis_num(zdim)
         func = pchip(np.abs(.5*(Zl[1:].data+Zl[:-1].data)), bhat,
                     axis=axis_num
                     )
-        bhat = xr.DataArray(func(np.abs(Zl.data)), dims=psihat.dims,
-                           coords=psihat.coords
-                           ).chunk(chunks=psihat.chunks)
+        bhat = xr.DataArray(func(np.abs(Zl.data)), dims=phihat.dims,
+                           coords=phihat.coords
+                           ).chunk(chunks=phihat.chunks)
     else:
-        bhat = grid.interp(grid.diff(psihat,'Z',boundary='fill')
+        bhat = grid.interp(grid.diff(phihat,'Z',boundary='fill')
                           / grid.diff(Zl,'Z',boundary='fill'),
                           'Z', boundary='fill'
-                          ).chunk(chunks=psihat.chunks)
-        if psihat.dims != bhat.dims:
+                          ).chunk(chunks=phihat.chunks)
+        if phihat.dims != bhat.dims:
             raise ValueError("psihat and bhat should be on the same grid.")
-    bhat *= f0
 
     # k_names = ['freq_' + d for d in psihat.dims[-2:]]
     kx = 2*np.pi*psihat[kdims[-1]]
@@ -184,6 +186,7 @@ def w_ageo(psi, f0, beta, N2, dZ, DZ=None, zdim='Zl',
     data[1] = dZ[0]**-1 * DZ[1]**-1
     data[-2] = dZ[nz-1]**-1 * DZ[-2]**-1
     data[-1] = -dZ[nz-1]**-1 * (DZ[-2]**-1 + DZ[-1]**-1)
+    f0 = f.mean()
     data *= f0**2
     delta = coo_matrix((data,(row,col)),
                       shape=(nz,nz),dtype=np.float64

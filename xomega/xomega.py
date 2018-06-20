@@ -55,8 +55,8 @@ def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl',
     Zl = Frhs[zdim]
     kx = 2*np.pi*Frhs[kdim]
     ky = 2*np.pi*Frhs[ldim]
-    N = Frhs.shape
-    nz = N[0]
+    nz = Frhs.shape[0]
+
     if isinstance(N2, float):
         enu = eye(nz) * N2
     else:
@@ -121,8 +121,8 @@ def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl',
                         coords={dim[0]:Zl.data,ldim:ky,kdim:kx}
                         )
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
-                                           ldim:N[-1],
-                                           kdim:N[-2]}
+                                           ldim:nl,
+                                           kdim:nk}
                                    ).data, axes=[-2,-1]
                        ).real
 

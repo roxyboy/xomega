@@ -117,7 +117,7 @@ def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl',
             ### Rigid lid solution ###
             wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 
-    wahat = xr.DataArray(wahat, dims=[dim[0],ldim,kdim,
+    wahat = xr.DataArray(wahat, dims=[dim[0],ldim,kdim],
                         coords={dim[0]:Zl.data,ldim:ky,kdim:kx}
                         )
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,

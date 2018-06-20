@@ -9,7 +9,8 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl', dim=None, coord=None):
+def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl',
+    kdim='freq_XC', ldim='freq_YC', dim=None, coord=None):
     """
     Inverts the quasi-geostrophic Omega equation to get the
     ageostrophic vertical velocity ($w_a$).
@@ -52,7 +53,8 @@ def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl', dim=None, coord=None):
         The quasi-geostrophic vertical velocity.
     """
     Zl = Frhs[zdim]
-    kdims = Frhs.dims[-2:]
+    kx = 2*np.pi*Frhs[kdim]
+    ky = 2*np.pi*Frhs[ldim]
     N = Frhs.shape
     nz = N[0]
     if isinstance(N2, float):

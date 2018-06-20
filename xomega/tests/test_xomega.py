@@ -25,14 +25,14 @@ def test_dims():
     DZ = f(Z.data)
 
     with pytest.raises(ValueError):
-        w_ageo(0.,0.,0.,da,dz,DZ=None)
+        w_ageo(0.,0.,0.,da,dz,DZ=None,kdim='X',ldim='Y')
 
     with pytest.raises(ValueError):
         w_ageo(xr.DataArray(np.ones(N+1),dims=['Zp1'],
                            coords={'Zp1':range(0,-11,-1)}
                            ),0,0,
               da.chunk(chunks={'Zl':1}),
-              dz,DZ=DZ)
+              dz,DZ=DZ,kdim='X',ldim='Y')
 
 
 # def test_qg():

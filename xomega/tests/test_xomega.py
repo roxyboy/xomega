@@ -2,32 +2,10 @@ import numpy as np
 import xarray as xr
 import numpy.testing as npt
 import pytest
-import os.path as op
-from scipy.io import loadmat
 from scipy.interpolate import interp1d
 from xomega import w_ageo
 
 # @pytest.fixture(params=['numpy', 'xarray'])
-def test_4D():
-    """Check whether depth is decreasing monotonically."""
-    N = 10
-    da = np.random.rand(N,N,N,N)
-    da = xr.DataArray(da, dims=['T','Zl','Y','X'],
-                     coords={'T':range(N),'Zl':range(0,-10,-1),
-                            'Y':range(N),'X':range(N)}
-                     )
-    Z = xr.DataArray(np.arange(-.5,-10.5,-1.), dims=['Z'],
-                    coords={'Z':np.arange(-.5,-10.5,-1.)}
-                    )
-    dz = Z.diff('Z')
-    f = interp1d(da.Zl[1:],dz,fill_value='extrapolate')
-    dz = f(Z)
-    DZ = da.Zl.diff('Zl')
-    f = interp1d(Z[1:].data,DZ,fill_value='extrapolate')
-    DZ = f(Z.data)
-
-    with pytest.raises(NotImplementedError):
-        w_ageo(da,0.,0.,0.,dz,DZ=DZ)
 
 def test_dims():
     N = 10
@@ -47,20 +25,15 @@ def test_dims():
     DZ = f(Z.data)
 
     with pytest.raises(ValueError):
-        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
-              xr.DataArray(np.ones(N+1),dims=['Zp1'],
-                          coords={'Zp1':range(0,-11,-1)}),
-              dz,DZ=DZ,FTdim=['Y','X'])
+        w_ageo(0.,0.,0.,da,dz,DZ=None)
+
     with pytest.raises(ValueError):
-        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
-              xr.DataArray(np.ones(N),dims=da.Zl.dims,
-                          coords={'Zl':da.Zl.data}),
-              dz,FTdim=['Y','X'])
-    with pytest.raises(ValueError):
-        w_ageo(da.chunk(chunks={'Zl':1}),0,0,
-              xr.DataArray(np.ones(N),dims=da.Zl.dims,
-                          coords={'Zl':da.Zl.data}),
-              dz,DZ=DZ,FTdim=['Y','X'],periodic='X')
+        w_ageo(xr.DataArray(np.ones(N+1),dims=['Zp1'],
+                           coords={'Zp1':range(0,-11,-1)}
+                           ),0,0,
+              da.chunk(chunks={'Zl':1}),
+              dz,DZ=DZ)
+
 
 # def test_qg():
 #     TESTDATA_FILENAME = op.join(op.dirname(__file__),

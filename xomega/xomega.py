@@ -9,141 +9,52 @@ import warnings
 
 __all__ = ['w_ageo']
 
-def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
-          grid=None, FTdim=None, dim=None, coord=None,
-          periodic=None, **kwargs):
+def w_ageo(N2, f0, beta, Frhs, dZ, DZ=None, zdim='Zl', dim=None, coord=None):
     """
-    Inverts the QG Omega equation to get the
-    first-order ageostrophic vertical velocity
-    for a rigid lid and flat bottom configuration,
-    i.e. w(z=0,z=-H)=0.
+    Inverts the quasi-geostrophic Omega equation to get the
+    ageostrophic vertical velocity ($w_a$).
+
+    .. math::
+
+        Frhs = \beta\frac{\partial b}{\partial x} - 2 \nabla_z \cdot {\bf Q}
+    where
+        {\bf Q}\equiv (Q_1,Q_2) = \big(\frac{\partial{\bf u}_g}{\partial x}\cdot\nabla_zb,
+                                       \frac{\partial{\bf u}_g}{\partial y}\cdot\nabla_zb
+                                  \big).
 
     Parameters
     ----------
-    psi  : dask.array
-        Geostrophic stream function. It should be aligned
-        on the cell top. The 2D FFT will be taken so the
-        horizontal axes should not be chunked.
-    f   : xarray.DataArray
-        Local coriolis parameter.
-    beta : float
-        Meridional gradient of the coriolis parameter.
-    N2   : float or xarray.DataArray
-        Buoyancy frequencys squared.
-    dz   : float or numpy.array
-        Difference between cell mid points.
-    DZ   : numpy.array (conditional)
-        Difference between cell interfaces.
-    zdim : str
-        Name of the vertical dimension of psi.
-    grid : xgcm.grid object (optional)
-        Uses the xgcm.grid.Grid functionality to take
-        the differencing and interpolation.
-    FTdim : list
-        Horizontal dimensions to take the DFT over.
-    dim : list
-        Dimensions of the output.
-    coords : list
-        Coordinates of the output.
-    periodic : string
-        Name of the horizontal periodic dimension.
-        It should be specified when only either spatial dimension is periodic.
-        In this case, the stream function should be detrended before
-        being called as an input for the function.
-        If both horizontal dimensions are periodic, edit `kwargs` instead.
-    kwargs : dictionary
-        Keyword arguments for `xrft.dft`.
+    N2 : `float` or `xarray.DataArray`
+        The buoyancy frequency.
+    f0 : `float`
+        Coriolis parameter.
+    beta : `float`
+        Meridional gradient of the Coriolis parameter
+        for a beta-plane approximation.
+    Frhs : `xarray.DataArray`
+        The Fourier transform of the right-hand side of
+        the Omega equation.
+    dZ : `float` or `xarray.DataArray`
+        Vertical distance between grid mid points.
+    DZ : `xarray.DataArray` (optional)
+        This should only be specified when `dZ` is an array
+        and the data is on non-uniform vertical grids.
+    zdim : `str`
+        Dimension name of the vertical axis of `Frhs`.
+    dim : `list`
+        List of the xarray.DataArray output.
+    coord : `dict`
+        Dictionary of the xarray.DataArray output.
 
     Returns
     -------
-    wa   : xarray.DataArray
-        Ageostrophic vertical velocity
+    wa : `xarray.DataArray`
+        The quasi-geostrophic vertical velocity.
     """
-    # if grid == None:
-    #     raise ValueError("xgcm.Grid object needs to be provided.")
-    if dim == None:
-        dim = psi.dims
-    if coord == None:
-        coord = psi.coords
-    Zp1 = coord[dim[0]]
-
-    Zl = psi[zdim]
-    nz = len(Zl)
-    N = psi.shape
-    if len(N) != 3:
-        raise NotImplementedError("Taking data with more than 3 dimensions "
-                                 "is not implemented yet.")
-    phi = psi*f
-    if periodic == None:
-        psihat = xrft.dft(psi, dim=FTdim, **kwargs)
-        phihat = xrft.dft(phi, dim=FTdim, **kwargs)
-    else:
-        if FTdim[0] != periodic:
-            raise ValueError("The first element in `FTdim` needs to be "
-                            "the periodic dimension.")
-        for i in FTdim:
-            if i == periodic:
-                psihat = xrft.dft(psi, dim=[i], shift=False)
-                phihat = xrft.dft(phi, dim=[i], shift=False)
-            else:
-                psihat = xrft.dft(psihat, dim=[i], **kwargs)
-                phihat = xrft.dft(phihat, dim=[i], **kwargs)
-    kdims = psihat.dims[-2:]
-    if grid == None:
-        bhat = phihat.diff(zdim)/Zl.diff(zdim)
-        axis_num = psi.get_axis_num(zdim)
-        func = pchip(np.abs(.5*(Zl[1:].data+Zl[:-1].data)), bhat,
-                    axis=axis_num
-                    )
-        bhat = xr.DataArray(func(np.abs(Zl.data)), dims=phihat.dims,
-                           coords=phihat.coords
-                           ).chunk(chunks=phihat.chunks)
-    else:
-        bhat = grid.interp(grid.diff(phihat,'Z',boundary='fill')
-                          / grid.diff(Zl,'Z',boundary='fill'),
-                          'Z', boundary='fill'
-                          ).chunk(chunks=phihat.chunks)
-        if phihat.dims != bhat.dims:
-            raise ValueError("psihat and bhat should be on the same grid.")
-
-    # k_names = ['freq_' + d for d in psihat.dims[-2:]]
-    kx = 2*np.pi*psihat[kdims[-1]]
-    ky = 2*np.pi*psihat[kdims[-2]]
-
-    ughat = -1j*psihat*ky
-    vghat = 1j*psihat*kx
-
-    Q1 = (dsar.fft.ifft2(1j*(ughat*kx).data, axes=[-2,-1])
-         * dsar.fft.ifft2(1j*(bhat*kx).data, axes=[-2,-1])
-         + dsar.fft.ifft2(1j*(vghat*kx).data, axes=[-2,-1])
-         * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
-         )
-    Q2 = (dsar.fft.ifft2(1j*(ughat*ky).data, axes=[-2,-1])
-         * dsar.fft.ifft2(1j*(bhat*kx).data, axes=[-2,-1])
-         + dsar.fft.ifft2(1j*(vghat*ky).data, axes=[-2,-1])
-         * dsar.fft.ifft2(1j*(bhat*ky).data, axes=[-2,-1])
-         )
-    Q1 = xr.DataArray(Q1,dims=psi.dims,coords=psi.coords)
-    Q2 = xr.DataArray(Q2,dims=psi.dims,coords=psi.coords)
-    Q1hat = xrft.dft(Q1, dim=FTdim, shift=False)
-    Q2hat = xrft.dft(Q2, dim=FTdim, shift=False)
-    # if periodic == None:
-    #     Q1hat = xrft.dft(Q1, dim=FTdim, **kwargs)
-    #     Q2hat = xrft.dft(Q2, dim=FTdim, **kwargs)
-    # else:
-    #     for i in FTdim:
-    #         if i == periodic:
-    #             Q1hat = xrft.dft(Q1, dim=[i],
-    #                             shift=False, detrend='constant')
-    #             Q2hat = xrft.dft(Q2, dim=[i],
-    #                             shift=False, detrend='constant')
-    #         else:
-    #             Q1hat = xrft.dft(Q1hat, dim=[i], **kwargs)
-    #             Q2hat = xrft.dft(Q2hat, dim=[i], **kwargs)
-
-    Frhs = (1j*beta*bhat*kx - 2*(1j*Q1hat*kx + 1j*Q2hat*ky)).compute()
-
-    ### N2 matrix ###
+    Zl = Frhs[zdim]
+    kdims = Frhs.dims[-2:]
+    N = Frhs.shape
+    nz = N[0]
     if isinstance(N2, float):
         enu = eye(nz) * N2
     else:
@@ -152,7 +63,8 @@ def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
         # if len(N2) != nz-1:
         #     raise ValueError("N2 should have one element less than psi.")
         if N2.dims != Zl.dims:
-            raise ValueError("N2 and psi should be on the same vertical grid.")
+            raise ValueError("`N2` and `Frhs` should be on "
+                            "the same vertical grid.")
         enu = coo_matrix((N2,(row,col)),
                         shape=(nz,nz), dtype=np.float64
                         )
@@ -172,7 +84,8 @@ def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
         DZ = dZ
     else:
         warnings.warn("The numerical errors for vertical derivatives "
-                     "may be significant.")
+                     "may be significant if the data is on a non-uniform "
+                     "vertical grid.")
         if DZ == None:
             raise ValueError("If dz is an array, "
                             "DZ also needs to be an array.")
@@ -204,8 +117,7 @@ def w_ageo(psi, f, beta, N2, dZ, DZ=None, zdim='Zl',
             wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 
     wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-1]],
-                        coords={dim[0]:Zp1.data,
-                               kdims[-2]:ky,kdims[-1]:kx}
+                        coords={dim[0]:Zl.data,kdims[-2]:ky,kdims[-1]:kx}
                         )
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
                                            kdims[-1]:N[-1],

@@ -10,7 +10,7 @@ import warnings
 __all__ = ['w_ageo_rigid']
 
 def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
-                dim=None, coord=None, wvnm='False'):
+                dim=None, coord=None, wvnm=False):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)
     to get the ageostrophic vertical velocity ($w_a$)

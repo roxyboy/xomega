@@ -10,7 +10,7 @@ import warnings
 __all__ = ['w_ageo_rigid']
 
 def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
-                dim=None, coord=None):
+                dim=None, coord=None, wvnm='False'):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)
     to get the ageostrophic vertical velocity ($w_a$)
@@ -30,7 +30,8 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
         for a beta-plane approximation.
     Frhs : xarray.DataArray
         The Fourier transform of the right-hand side of
-        the Omega equation.
+        the Omega equation. The last two dimensions should be
+        the meridional and zonal wavenumber.
     dZ : float or xarray.DataArray
         Vertical distance between grid.
     dZ0 : float or xarray.DataArray, optional
@@ -43,6 +44,10 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
         List of the xarray.DataArray output.
     coord : dict, optional
         Dictionary of the xarray.DataArray output.
+    wvnm : bool, optional
+        Whether the coordinates of `Frhs` are wavenumbers
+        or inverse wavelengths. Default is `False` meaning
+        that the coordinates are in the latter.
 
     Returns
     -------
@@ -106,6 +111,13 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
                       shape=(nz,nz),dtype=np.float64
                       )
 
+    ky = Frhs[kdims[0]]
+    kx = Frhs[kdims[1]]
+    if wvnm == False:
+        warnings.warn("The coordinates are in inverse wavelenths so "
+                     "converting them to wavenumbers.")
+        ky *= 2*np.pi
+        kx *= 2*np.pi
     nk, nl = (len(kx),len(ky))
     wahat = np.zeros_like(Frhs, dtype=np.complex128)
 

@@ -3,7 +3,7 @@ import xarray as xr
 import numpy.testing as npt
 import pytest
 from scipy.interpolate import interp1d
-from xomega import w_ageo
+from xomega import w_ageo_rigid
 
 # @pytest.fixture(params=['numpy', 'xarray'])
 
@@ -20,19 +20,13 @@ def test_dims():
     dz = Z.diff('Z')
     f = interp1d(da.Zl[1:],dz,fill_value='extrapolate')
     dz = f(Z)
-    DZ = da.Zl.diff('Zl')
-    f = interp1d(Z[1:].data,DZ,fill_value='extrapolate')
-    DZ = f(Z.data)
 
     with pytest.raises(ValueError):
-        w_ageo(0.,0.,0.,da,dz,DZ=None,kdim='X',ldim='Y')
-
-    with pytest.raises(ValueError):
-        w_ageo(xr.DataArray(np.ones(N+1),dims=['Zp1'],
-                           coords={'Zp1':range(0,-11,-1)}
-                           ),0,0,
-              da.chunk(chunks={'Zl':1}),
-              dz,DZ=DZ,kdim='X',ldim='Y')
+        w_ageo_rigid(xr.DataArray(np.ones(N+1),dims=['Zp1'],
+                                 coords={'Zp1':range(0,-11,-1)}
+                                 ),0,0,
+                    da.chunk(chunks={'Zl':1}),
+                    dz)
 
 
 # def test_qg():

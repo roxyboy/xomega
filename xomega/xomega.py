@@ -4,7 +4,7 @@ import dask.array as dsar
 from scipy.sparse import coo_matrix, csc_matrix, eye
 from scipy.sparse.linalg import spsolve
 from scipy.interpolate import PchipInterpolator as pchip
-import xrft
+# import xrft
 import warnings
 
 __all__ = ['w_ageo_rigid']

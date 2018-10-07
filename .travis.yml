@@ -32,10 +32,10 @@ before_install:
 
 install:
   - python setup.py install --record installed_files.txt
-  - git clone https://github.com/rabernat/xrft.git
-  - cd xrft
-  - python setup.py install
-  - cd ../
+  # - git clone https://github.com/rabernat/xrft.git
+  # - cd xrft
+  # - python setup.py install
+  # - cd ../
 
 script:
   - py.test xomega --cov=xomega --cov-config .coveragerc --cov-report term-missing -v

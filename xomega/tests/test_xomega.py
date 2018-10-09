@@ -25,7 +25,7 @@ def test_dims():
         w_ageo_rigid(xr.DataArray(np.ones(N+1),dims=['Zp1'],
                                  coords={'Zp1':range(0,-11,-1)}
                                  ),0,0,
-                    da.chunk(chunks={'Zl':1}),
+                    da.chunk(chunks={'Zl':1}), da.X, da.Y,
                     dz)
 
 

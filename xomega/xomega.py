@@ -9,8 +9,8 @@ import warnings
 
 __all__ = ['w_ageo_rigid']
 
-def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
-                dim=None, coord=None, wvnm=False):
+def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
+                dim=None, coord=None):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)
     to get the ageostrophic vertical velocity ($w_a$)
@@ -32,6 +32,10 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
         The Fourier transform of the right-hand side of
         the Omega equation. The last two dimensions should be
         the meridional and zonal wavenumber.
+    kx : xarray.DataArray
+        Zonal wavenumber.
+    ky : xarray.DataArray
+        Meridional wavenumber.
     dZ : float or xarray.DataArray
         Vertical distance between grid.
     dZ0 : float or xarray.DataArray, optional
@@ -55,7 +59,7 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
         The quasi-geostrophic vertical velocity.
     """
     Zl = Frhs[zdim]
-    kdims = Frhs.dims[-2:]
+    # kdims = Frhs.dims[-2:]
     N = Frhs.shape
     nz = N[0]
 
@@ -87,14 +91,18 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
 #     col = np.append(0, col)
     col = np.append(col, np.array([nz-1]))
 #     col = np.append(col, nz-1)
-
+    if dZ0 == None:
+        dZ0 = dZ
+    if dZ1 == None:
+        dZ1 = dZ
     if isinstance(dZ, float):
         dZ = dZ*np.ones(nz)
         DZ = dZ
         dZ = np.append(dZ0, dZ)
         dZ = np.append(dZ, dZ1)
     else:
-        warnings.warn("The numerical errors for vertical derivatives "
+        warnings.warn("The data is not on uniform vertical gridding. "
+                     "The numerical errors for vertical derivatives "
                      "may be significant.")
     tmp = np.zeros((nz-2,3))
     tmp[:,0] = DZ[:-2]**-1
@@ -111,13 +119,13 @@ def w_ageo_rigid(N2, f0, beta, Frhs, dZ, dZ0=0., dZ1=0., zdim='Zl',
                       shape=(nz,nz),dtype=np.float64
                       )
 
-    ky = Frhs[kdims[0]]
-    kx = Frhs[kdims[1]]
-    if wvnm == False:
-        warnings.warn("The coordinates are in inverse wavelenths so "
-                     "converting them to wavenumbers.")
-        ky *= 2*np.pi
-        kx *= 2*np.pi
+    # ky = Frhs[kdims[0]]
+    # kx = Frhs[kdims[1]]
+    # if wvnm == False:
+    #     warnings.warn("The coordinates are in inverse wavelenths so "
+    #                  "converting them to wavenumbers.")
+    #     ky *= 2*np.pi
+    #     kx *= 2*np.pi
     nk, nl = (len(kx),len(ky))
     wahat = np.zeros_like(Frhs, dtype=np.complex128)
 

@@ -48,8 +48,6 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         List of the xarray.DataArray output.
     coord : dict, optional
         Dictionary of the xarray.DataArray output.
-    kdims : list, optional
-        List of the wavenumber dimensions of `Frhs`.
 
     Returns
     -------

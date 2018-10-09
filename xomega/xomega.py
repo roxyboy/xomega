@@ -59,7 +59,6 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         The quasi-geostrophic vertical velocity.
     """
     Zl = Frhs[zdim]
-    # kdims = Frhs.dims[-2:]
     N = Frhs.shape
     nz = N[0]
 
@@ -101,8 +100,7 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         dZ = np.append(dZ0, dZ)
         dZ = np.append(dZ, dZ1)
     else:
-        warnings.warn("The data is not on uniform vertical gridding. "
-                     "The numerical errors for vertical derivatives "
+        warnings.warn("The data is not on uniform vertical gridding.""The numerical errors for vertical derivatives "
                      "may be significant.")
     tmp = np.zeros((nz-2,3))
     tmp[:,0] = DZ[:-2]**-1
@@ -143,6 +141,7 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
     wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-1]],
                         coords={dim[0]:Zl.data,kdims[-2]:ky,kdims[-1]:kx}
                         )
+    kdims = Frhs.dims[-2:]
     wa = dsar.fft.ifft2(wahat.chunk(chunks={dim[0]:1,
                                            kdims[-1]:N[-1],
                                            kdims[-2]:N[-2]}

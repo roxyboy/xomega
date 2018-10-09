@@ -100,7 +100,8 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         dZ = np.append(dZ0, dZ)
         dZ = np.append(dZ, dZ1)
     else:
-        warnings.warn("The data is not on uniform vertical gridding.""The numerical errors for vertical derivatives "
+        warnings.warn("The data is not on uniform vertical gridding. "
+                     "The numerical errors for vertical derivatives "
                      "may be significant.")
     tmp = np.zeros((nz-2,3))
     tmp[:,0] = DZ[:-2]**-1

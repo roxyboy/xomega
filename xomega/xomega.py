@@ -48,10 +48,6 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         List of the xarray.DataArray output.
     coord : dict, optional
         Dictionary of the xarray.DataArray output.
-    wvnm : bool, optional
-        Whether the coordinates of `Frhs` are wavenumbers
-        or inverse wavelengths. Default is `False` meaning
-        that the coordinates are in the latter.
 
     Returns
     -------
@@ -59,7 +55,7 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
         The quasi-geostrophic vertical velocity.
     """
     Zl = Frhs[zdim]
-    # kdims = Frhs.dims[-2:]
+    kdims = Frhs.dims[-2:]
     N = Frhs.shape
     nz = N[0]
 
@@ -139,7 +135,6 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
             ### Rigid lid solution ###
             wahat[:,j,i] = spsolve(A, Frhs[:,j,i])
 #             wahat[1:-1,j,i], res, rnk, s = lstsq(A.todense(), Frhs[:,j,i])
-
     wahat = xr.DataArray(wahat, dims=[dim[0],kdims[-2],kdims[-1]],
                         coords={dim[0]:Zl.data,kdims[-2]:ky,kdims[-1]:kx}
                         )

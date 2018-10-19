@@ -1,0 +1,17 @@
+name: xomega
+dependencies:
+  - python=3.6
+  - pandas
+  - xarray
+  - dask
+  - scipy
+  - numpy
+  - pytest
+  - numpydoc
+  - sphinx=1.6.7
+  - ipython
+  - matplotlib
+  - pip:
+    - docrep
+    - nbsphinx
+    - sphinx_rtd_theme

@@ -1,1 +1,2 @@
-from .xomega import w_ageo_rigid
+from .version import __version__  # noqa
+from .xomega import *

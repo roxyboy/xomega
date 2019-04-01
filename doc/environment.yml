@@ -8,10 +8,12 @@ dependencies:
   - numpy
   - pytest
   - numpydoc
-  - sphinx=1.6.7
+  - sphinx
   - ipython
   - matplotlib
+  - pandoc
   - pip:
     - docrep
     - nbsphinx
     - sphinx_rtd_theme
+    - sphinxcontrib-apidoc

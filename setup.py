@@ -3,7 +3,6 @@ import versioneer
 from setuptools import setup, find_packages
 PACKAGES = find_packages()
 
-VERSION = 'v0.1'
 DISTNAME = 'xomega'
 LICENSE = 'MIT'
 AUTHOR = 'xomega Developers'

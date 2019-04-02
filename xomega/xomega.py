@@ -17,6 +17,7 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
     for rigid lid boundary conditions given the right-hand side fo the equation.
 
     .. math::
+    
         \nabla_z^2 N^2 w_a + f_0^2 \frac{\partial^2 w_a}{\partial z^2} = \beta\frac{\partial b}{\partial x} + \nabla_z \cdot {\bf Q}
 
     Parameters

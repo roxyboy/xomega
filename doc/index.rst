@@ -18,7 +18,7 @@ at each time and depth in wavenumber space, i.e.
 
 .. math::
 
-    -\kappa^2N^2\hat{w} + f_0^2\frac{\partial^2 \hat{w}}{\partial z^2} = ik\beta\hat{b} + (ik\hat{Q}_x + il\hat{Q}_y).
+    -\kappa^2N^2\hat{w}_\text{b} + f_0^2\frac{\partial^2 \hat{w}_\text{b}}{\partial z^2} = ik\beta\hat{b} + (ik\hat{Q}_x + il\hat{Q}_y).
 
 where :math:`\mathbf{\kappa} = (k,l)` is the horizontal wavenumber vector.
 The right-hand side, neglecting the turbulent correlation terms is
@@ -32,12 +32,13 @@ The right-hand side, neglecting the turbulent correlation terms is
 
     {\bf Q}_\text{da} = f \Big( \frac{\partial v}{\partial x}\frac{\partial u_\text{a}}{\partial z} - \frac{\partial u}{\partial x}\frac{\partial v_\text{a}}{\partial z}, \frac{\partial v}{\partial y}\frac{\partial u_\text{a}}{\partial z} - \frac{\partial u}{\partial y}\frac{\partial v_\text{a}}{\partial z} \Big).
 
-Assuming the total flow to be in geostrophic balance :math:`{\bf u}={\bf u}_\text{g}=\frac{\hat{z}}{f}\times\nabla_\text{h}\Phi` reduces to the `quasi-geostrophic Omega equation <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.49710443903>`_.
+Assuming the total flow to be in geostrophic balance :math:`{\bf u}={\bf u}_\text{g}=\frac{\hat{z}}{f}\times\nabla_\text{h}\Phi`,
+the generalized form reduces to the `quasi-geostrophic Omega equation <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.49710443903>`_.
 
 .. note::
 
     xomega is at early stage of development and will keep improving in the future.
-    The discrete Fourier transform API should be quite stable,
+    The rigid-lid API should be quite stable,
     but minor utilities could change in the next version.
     If you find any bugs or would like to request any enhancements,
     please `raise an issue on GitHub <https://github.com/roxyboy/xomega.git>`_.

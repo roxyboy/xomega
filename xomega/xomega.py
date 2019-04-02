@@ -7,9 +7,9 @@ from scipy.interpolate import PchipInterpolator as pchip
 # import xrft
 import warnings
 
-__all__ = ['w_ageo_rigid']
+__all__ = ['w_rigid']
 
-def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
+def w_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
                 dim=None, coord=None):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)

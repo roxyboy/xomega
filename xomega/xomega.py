@@ -13,12 +13,8 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
                 dim=None, coord=None):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)
-    to get the ageostrophic vertical velocity ($w_a$)
+    to get the ageostrophic vertical velocity (:math:`w_b`)
     for rigid lid boundary conditions given the right-hand side fo the equation.
-
-    .. math::
-    
-        \nabla_z^2 N^2 w_a + f_0^2 \frac{\partial^2 w_a}{\partial z^2} = \beta\frac{\partial b}{\partial x} + \nabla_z \cdot {\bf Q}
 
     Parameters
     ----------
@@ -38,7 +34,8 @@ def w_ageo_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
     ky : xarray.DataArray
         Meridional wavenumber.
     dZ : float or xarray.DataArray
-        Vertical distance between grid.
+        Vertical distance between grid. This should take constant
+        value(s) for best numerical percision.
     dZ0 : float or xarray.DataArray, optional
         Top vertical distance between grids.
     dZ1 : float or xarray.DataArray, optional

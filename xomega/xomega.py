@@ -13,8 +13,8 @@ def w_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
                 dim=None, coord=None):
     """
     Inverts the Omega equation given by Giordani and Planton (2000)
-    to get the ageostrophic vertical velocity (:math:`w_b`)
-    for rigid lid boundary conditions given the right-hand side fo the equation.
+    to get the balanced vertical velocity (:math:`w_b`)
+    for rigid-lid boundary conditions given the right-hand side fo the equation.
 
     Parameters
     ----------

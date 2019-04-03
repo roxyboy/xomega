@@ -32,6 +32,7 @@ The right-hand side, neglecting the turbulent correlation terms is
 
     {\bf Q}_\text{da} = f \Big( \frac{\partial v}{\partial x}\frac{\partial u_\text{a}}{\partial z} - \frac{\partial u}{\partial x}\frac{\partial v_\text{a}}{\partial z}, \frac{\partial v}{\partial y}\frac{\partial u_\text{a}}{\partial z} - \frac{\partial u}{\partial y}\frac{\partial v_\text{a}}{\partial z} \Big).
 
+where :math:`{\bf u}_\text{a}\ (={\bf u}-{\bf u}_\text{g})` is the ageotrophic velocity.
 Assuming the total flow to be in geostrophic balance :math:`{\bf u}={\bf u}_\text{g}=\frac{\hat{z}}{f}\times\nabla_\text{h}\Phi`,
 the generalized form reduces to the `quasi-geostrophic Omega equation <https://rmets.onlinelibrary.wiley.com/doi/abs/10.1002/qj.49710443903>`_.
 

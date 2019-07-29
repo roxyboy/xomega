@@ -6,3 +6,6 @@
 
 Functions to invert the [generalized Omega equation](https://journals.ametsoc.org/doi/full/10.1175/1520-0493%282000%29128%3C2270%3AMAAOAC%3E2.0.CO%3B2),
 developed by [Takaya Uchida](https://roxyboy.github.io/), a Physical Oceanographer with interest in eddy tracer transport.
+
+Example notebooks can be found on
+[Binder](https://binder.pangeo.io/v2/gh/roxyboy/2km-flat-channel_eg/master).

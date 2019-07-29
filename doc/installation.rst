@@ -7,9 +7,10 @@ The quickest way
 ----------------
 
 xomega is compatible both with Python 2 and 3. The major dependencies are xarray_ and dask_.
-The best way to install them is using Anaconda_.::
+The best way to install them is using Anaconda_ and pip_.::
 
-    $ conda install xarray dask .
+    $ conda install xarray dask
+    $ pip install xomega .
 
 Install xomega from GitHub repo
 -------------------------------
@@ -28,3 +29,4 @@ Developers can track source code changes by::
 .. _xarray: http://xarray.pydata.org
 .. _dask: http://dask.pydata.org/en/latest/
 .. _Anaconda: https://www.continuum.io/downloads
+.. _pip: https://pip.pypa.io/en/stable/

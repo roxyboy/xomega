@@ -50,7 +50,7 @@ def w_rigid(N2, f0, beta, Frhs, kx, ky, dZ, dZ0=None, dZ1=None, zdim='Zl',
     Returns
     -------
     wa : xarray.DataArray
-        The quasi-geostrophic vertical velocity.
+        The inverted ageostrophic vertical velocity.
     """
     Zl = Frhs[zdim]
     kdims = Frhs.dims[-2:]
